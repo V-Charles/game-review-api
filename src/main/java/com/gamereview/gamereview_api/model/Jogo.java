@@ -1,6 +1,7 @@
 package com.gamereview.gamereview_api.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.PastOrPresent;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -21,6 +22,10 @@ public class Jogo {
     private Integer id;
 
     private Long igdbId;
+
+    @NotBlank(message = "O título do jogo é obrigatório")
+    @Column(nullable = false)
+    private String titulo;
 
     private String urlCapa;
 
