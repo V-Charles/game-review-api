@@ -1,4 +1,4 @@
-package com.gamereview.gamereview_api.repositories;
+package com.gamereview.gamereview_api.repository;
 
 import com.gamereview.gamereview_api.model.Jogo;
 import org.springframework.data.domain.Page;

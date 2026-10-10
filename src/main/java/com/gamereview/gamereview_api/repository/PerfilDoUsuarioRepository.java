@@ -1,4 +1,4 @@
-package com.gamereview.gamereview_api.repositories;
+package com.gamereview.gamereview_api.repository;
 
 import com.gamereview.gamereview_api.model.PerfilDoUsuario;
 import org.springframework.data.jpa.repository.JpaRepository;
