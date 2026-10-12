@@ -23,7 +23,7 @@ Este projeto foi construído utilizando:
 
 Siga os passos abaixo para rodar a aplicação em sua máquina:
 
-1. Clone o repositório: git clone https://github.com/seu-usuario/gamereview-api.git
+1. Clone o repositório: git clone https://github.com/v-charles/game-review-api.git
 2. Acesse a pasta do projeto e instale as dependências via Maven: mvn clean install
 3. Execute a aplicação Spring Boot: mvn spring-boot:run
 
