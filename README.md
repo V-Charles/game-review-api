@@ -1,4 +1,3 @@
-
 # Game Review API
 
 A Game Review API é um WebService RESTful desenvolvido para gerenciar o ecossistema de avaliação de jogos. A aplicação permite o cadastro de estúdios, jogos, usuários, e possibilita que a comunidade crie listas de jogos personalizadas e avaliações detalhadas.
