@@ -1,7 +1,7 @@
 package com.gamereview.gamereview_api.controller;
 
 import com.gamereview.gamereview_api.model.Jogo;
-import com.gamereview.gamereview_api.repository.JogoRepository;
+import com.gamereview.gamereview_api.service.JogoService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -27,7 +27,7 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 public class JogoController {
 
     @Autowired
-    private JogoRepository repository;
+    private JogoService service;
 
     @Autowired
     private PagedResourcesAssembler<Jogo> pagedResourcesAssembler;
@@ -39,8 +39,9 @@ public class JogoController {
             @ApiResponse(responseCode = "400", description = "Erro de validação (campos vazios ou inválidos)"),
             @ApiResponse(responseCode = "409", description = "Conflito de dados (ex: violação de integridade ou chave estrangeira inexistente)")
     })
+
     public ResponseEntity<EntityModel<Jogo>> create(@RequestBody @Valid Jogo jogo){
-        Jogo saved = repository.save(jogo);
+        Jogo saved = service.create(jogo);
         return ResponseEntity.status(HttpStatus.CREATED).body(toHateoas(saved));
     }
 
@@ -49,8 +50,9 @@ public class JogoController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Lista de jogos recuperada com sucesso")
     })
+
     public ResponseEntity<PagedModel<EntityModel<Jogo>>> findAll(@PageableDefault(size = 10) Pageable pageable){
-        Page<Jogo> page = repository.findAll(pageable);
+        Page<Jogo> page = service.findAll(pageable);
         return ResponseEntity.ok(pagedResourcesAssembler.toModel(page, this::toHateoas));
     }
 
@@ -61,8 +63,9 @@ public class JogoController {
             @ApiResponse(responseCode = "400", description = "ID fornecido é inválido (erro de tipo)"),
             @ApiResponse(responseCode = "404", description = "Jogo não encontrado")
     })
+
     public ResponseEntity<EntityModel<Jogo>> findById(@PathVariable Integer id){
-        return repository.findById(id)
+        return service.findById(id)
                 .map(jogo -> ResponseEntity.ok(toHateoas(jogo)))
                 .orElse(ResponseEntity.notFound().build());
     }
@@ -75,13 +78,11 @@ public class JogoController {
             @ApiResponse(responseCode = "404", description = "Jogo não encontrado"),
             @ApiResponse(responseCode = "409", description = "Conflito de dados")
     })
+
     public ResponseEntity<EntityModel<Jogo>> update(@PathVariable Integer id, @RequestBody @Valid Jogo jogo){
-        if(!repository.existsById(id)){
-            return ResponseEntity.notFound().build();
-        }
-        jogo.setId(id);
-        Jogo update = repository.save(jogo);
-        return ResponseEntity.ok(toHateoas(update));
+        return service.update(id, jogo)
+                .map(update -> ResponseEntity.ok(toHateoas(update)))
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @DeleteMapping("/{id}")
@@ -91,11 +92,11 @@ public class JogoController {
             @ApiResponse(responseCode = "400", description = "ID fornecido é inválido"),
             @ApiResponse(responseCode = "404", description = "Jogo não encontrado")
     })
+
     public ResponseEntity<Void> delete(@PathVariable Integer id){
-        if(!repository.existsById(id)){
+        if(!service.delete(id)){
             return ResponseEntity.notFound().build();
         }
-        repository.deleteById(id);
         return ResponseEntity.noContent().build();
     }
 
@@ -104,8 +105,9 @@ public class JogoController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Busca realizada com sucesso")
     })
+
     public ResponseEntity<PagedModel<EntityModel<Jogo>>> searchByTitulo(@RequestParam String titulo, @PageableDefault(size = 10) Pageable pageable){
-        Page<Jogo> page = repository.findByTituloContainingIgnoreCase(titulo, pageable);
+        Page<Jogo> page = service.searchByTitulo(titulo, pageable);
         return ResponseEntity.ok(pagedResourcesAssembler.toModel(page, this::toHateoas));
     }
 

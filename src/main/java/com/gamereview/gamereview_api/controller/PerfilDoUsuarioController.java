@@ -1,7 +1,7 @@
 package com.gamereview.gamereview_api.controller;
 
 import com.gamereview.gamereview_api.model.PerfilDoUsuario;
-import com.gamereview.gamereview_api.repository.PerfilDoUsuarioRepository;
+import com.gamereview.gamereview_api.service.PerfilDoUsuarioService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -29,7 +29,7 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 public class PerfilDoUsuarioController {
 
     @Autowired
-    private PerfilDoUsuarioRepository repository;
+    private PerfilDoUsuarioService service;
 
     @Autowired
     private PagedResourcesAssembler<PerfilDoUsuario> pagedResourcesAssembler;
@@ -41,8 +41,9 @@ public class PerfilDoUsuarioController {
             @ApiResponse(responseCode = "400", description = "Erro de validação (campos inválidos)"),
             @ApiResponse(responseCode = "409", description = "Conflito de dados (ex: usuário já possui perfil ou ID de usuário inexistente)")
     })
+
     public ResponseEntity<EntityModel<PerfilDoUsuario>> create(@RequestBody @Valid PerfilDoUsuario perfil) {
-        PerfilDoUsuario saved = repository.save(perfil);
+        PerfilDoUsuario saved = service.create(perfil);
         return ResponseEntity.status(HttpStatus.CREATED).body(toHateoas(saved));
     }
 
@@ -51,8 +52,9 @@ public class PerfilDoUsuarioController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Lista de perfis recuperada com sucesso")
     })
+
     public ResponseEntity<PagedModel<EntityModel<PerfilDoUsuario>>> findAll(@PageableDefault(size = 10) Pageable pageable) {
-        Page<PerfilDoUsuario> page = repository.findAll(pageable);
+        Page<PerfilDoUsuario> page = service.findAll(pageable);
         return ResponseEntity.ok(pagedResourcesAssembler.toModel(page, this::toHateoas));
     }
 
@@ -63,8 +65,9 @@ public class PerfilDoUsuarioController {
             @ApiResponse(responseCode = "400", description = "ID fornecido é inválido (erro de tipo)"),
             @ApiResponse(responseCode = "404", description = "Perfil não encontrado")
     })
+
     public ResponseEntity<EntityModel<PerfilDoUsuario>> findById(@PathVariable Integer id) {
-        return repository.findById(id)
+        return service.findById(id)
                 .map(perfil -> ResponseEntity.ok(toHateoas(perfil)))
                 .orElse(ResponseEntity.notFound().build());
     }
@@ -77,13 +80,11 @@ public class PerfilDoUsuarioController {
             @ApiResponse(responseCode = "404", description = "Perfil não encontrado"),
             @ApiResponse(responseCode = "409", description = "Conflito de dados")
     })
+
     public ResponseEntity<EntityModel<PerfilDoUsuario>> update(@PathVariable Integer id, @RequestBody @Valid PerfilDoUsuario perfil) {
-        if (!repository.existsById(id)) {
-            return ResponseEntity.notFound().build();
-        }
-        perfil.setId(id);
-        PerfilDoUsuario update = repository.save(perfil);
-        return ResponseEntity.ok(toHateoas(update));
+        return service.update(id, perfil)
+                .map(update -> ResponseEntity.ok(toHateoas(update)))
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @DeleteMapping("/{id}")
@@ -93,11 +94,11 @@ public class PerfilDoUsuarioController {
             @ApiResponse(responseCode = "400", description = "ID fornecido é inválido"),
             @ApiResponse(responseCode = "404", description = "Perfil não encontrado")
     })
+
     public ResponseEntity<Void> delete(@PathVariable Integer id) {
-        if (!repository.existsById(id)) {
+        if (!service.delete(id)) {
             return ResponseEntity.notFound().build();
         }
-        repository.deleteById(id);
         return ResponseEntity.noContent().build();
     }
 
@@ -108,8 +109,9 @@ public class PerfilDoUsuarioController {
             @ApiResponse(responseCode = "400", description = "Parâmetro fornecido é inválido"),
             @ApiResponse(responseCode = "404", description = "Nenhum perfil encontrado para o usuário fornecido")
     })
+
     public ResponseEntity<EntityModel<PerfilDoUsuario>> searchByUsuarioId(@RequestParam Integer usuarioId) {
-        Optional<PerfilDoUsuario> perfil = repository.findByUsuarioId(usuarioId);
+        Optional<PerfilDoUsuario> perfil = service.searchByUsuarioId(usuarioId);
         return perfil.map(value -> ResponseEntity.ok(toHateoas(value)))
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }

@@ -1,7 +1,7 @@
 package com.gamereview.gamereview_api.controller;
 
 import com.gamereview.gamereview_api.model.Usuario;
-import com.gamereview.gamereview_api.repository.UsuarioRepository;
+import com.gamereview.gamereview_api.service.UsuarioService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -29,7 +29,7 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 public class UsuarioController {
 
     @Autowired
-    private UsuarioRepository repository;
+    private UsuarioService service;
 
     @Autowired
     private PagedResourcesAssembler<Usuario> pagedResourcesAssembler;
@@ -41,8 +41,9 @@ public class UsuarioController {
             @ApiResponse(responseCode = "400", description = "Erro de validação (campos vazios, tamanho de senha ou formato de e-mail)"),
             @ApiResponse(responseCode = "409", description = "Conflito de dados (e-mail ou nome de usuário já cadastrado)")
     })
+
     public ResponseEntity<EntityModel<Usuario>> create(@RequestBody @Valid Usuario usuario){
-        Usuario saved = repository.save(usuario);
+        Usuario saved = service.create(usuario);
         return ResponseEntity.status(HttpStatus.CREATED).body(toHateoas(saved));
     }
 
@@ -51,8 +52,9 @@ public class UsuarioController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Lista de usuários recuperada com sucesso")
     })
+
     public ResponseEntity<PagedModel<EntityModel<Usuario>>> findAll(@PageableDefault(size = 10)Pageable pageable){
-        Page<Usuario> page = repository.findAll(pageable);
+        Page<Usuario> page = service.findAll(pageable);
         return ResponseEntity.ok(pagedResourcesAssembler.toModel(page, this::toHateoas));
     }
 
@@ -63,8 +65,9 @@ public class UsuarioController {
             @ApiResponse(responseCode = "400", description = "ID fornecido é inválido (erro de tipo)"),
             @ApiResponse(responseCode = "404", description = "Usuário não encontrado")
     })
+
     public ResponseEntity<EntityModel<Usuario>> findById(@PathVariable Integer id){
-        return repository.findById(id)
+        return service.findById(id)
                 .map(usuario -> ResponseEntity.ok(toHateoas(usuario)))
                 .orElse(ResponseEntity.notFound().build());
     }
@@ -77,13 +80,11 @@ public class UsuarioController {
             @ApiResponse(responseCode = "404", description = "Usuário não encontrado"),
             @ApiResponse(responseCode = "409", description = "Conflito de dados (e-mail ou nome de usuário em uso)")
     })
+
     public ResponseEntity<EntityModel<Usuario>> update(@PathVariable Integer id, @RequestBody @Valid Usuario usuario){
-        if(!repository.existsById(id)){
-            return ResponseEntity.notFound().build();
-        }
-        usuario.setId(id);
-        Usuario update = repository.save(usuario);
-        return ResponseEntity.ok(toHateoas(update));
+        return service.update(id, usuario)
+                .map(update -> ResponseEntity.ok(toHateoas(update)))
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @DeleteMapping("/{id}")
@@ -93,11 +94,11 @@ public class UsuarioController {
             @ApiResponse(responseCode = "400", description = "ID fornecido é inválido"),
             @ApiResponse(responseCode = "404", description = "Usuário não encontrado")
     })
+
     public ResponseEntity<Void> delete(@PathVariable Integer id){
-        if(!repository.existsById(id)){
+        if(!service.delete(id)){
             return ResponseEntity.notFound().build();
         }
-        repository.deleteById(id);
         return ResponseEntity.noContent().build();
     }
 
@@ -107,8 +108,9 @@ public class UsuarioController {
             @ApiResponse(responseCode = "200", description = "Usuário encontrado com sucesso"),
             @ApiResponse(responseCode = "404", description = "Nenhum usuário encontrado com o e-mail fornecido")
     })
+
     public ResponseEntity<EntityModel<Usuario>> searchByEmail(@RequestParam String email){
-        Optional<Usuario> usuario = repository.findByEmail(email);
+        Optional<Usuario> usuario = service.searchByEmail(email);
         return usuario.map(value -> ResponseEntity.ok(toHateoas(value)))
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }

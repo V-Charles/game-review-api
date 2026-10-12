@@ -1,7 +1,7 @@
 package com.gamereview.gamereview_api.controller;
 
 import com.gamereview.gamereview_api.model.Estudio;
-import com.gamereview.gamereview_api.repository.EstudioRepository;
+import com.gamereview.gamereview_api.service.EstudioService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -27,7 +27,7 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 public class EstudioController {
 
     @Autowired
-    private EstudioRepository repository;
+    private EstudioService service;
 
     @Autowired
     private PagedResourcesAssembler<Estudio> pagedResourcesAssembler;
@@ -40,7 +40,7 @@ public class EstudioController {
             @ApiResponse(responseCode = "409", description = "Conflito de dados (estúdio já cadastrado)")
     })
     public ResponseEntity<EntityModel<Estudio>> create(@RequestBody @Valid Estudio estudio){
-        Estudio saved = repository.save(estudio);
+        Estudio saved = service.create(estudio);
         return ResponseEntity.status(HttpStatus.CREATED).body(toHateoas(saved));
     }
 
@@ -50,7 +50,7 @@ public class EstudioController {
             @ApiResponse(responseCode = "200", description = "Lista de estúdios recuperada com sucesso")
     })
     public ResponseEntity<PagedModel<EntityModel<Estudio>>> findAll(@PageableDefault(size = 10) Pageable pageable){
-        Page<Estudio> page = repository.findAll(pageable);
+        Page<Estudio> page = service.findAll(pageable);
         return ResponseEntity.ok(pagedResourcesAssembler.toModel(page, this::toHateoas));
     }
 
@@ -62,7 +62,7 @@ public class EstudioController {
             @ApiResponse(responseCode = "404", description = "Estúdio não encontrado")
     })
     public ResponseEntity<EntityModel<Estudio>> findById(@PathVariable Integer id){
-        return repository.findById(id)
+        return service.findById(id)
                 .map(estudio -> ResponseEntity.ok(toHateoas(estudio)))
                 .orElse(ResponseEntity.notFound().build());
     }
@@ -76,12 +76,9 @@ public class EstudioController {
             @ApiResponse(responseCode = "409", description = "Conflito de dados")
     })
     public ResponseEntity<EntityModel<Estudio>> update(@PathVariable Integer id, @RequestBody @Valid Estudio estudio){
-        if(!repository.existsById(id)){
-            return ResponseEntity.notFound().build();
-        }
-        estudio.setId(id);
-        Estudio update = repository.save(estudio);
-        return ResponseEntity.ok(toHateoas(update));
+        return service.update(id, estudio)
+                .map(update -> ResponseEntity.ok(toHateoas(update)))
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @DeleteMapping("/{id}")
@@ -92,10 +89,9 @@ public class EstudioController {
             @ApiResponse(responseCode = "404", description = "Estúdio não encontrado")
     })
     public ResponseEntity<Void> delete(@PathVariable Integer id){
-        if(!repository.existsById(id)){
+        if(!service.delete(id)){
             return ResponseEntity.notFound().build();
         }
-        repository.deleteById(id);
         return ResponseEntity.noContent().build();
     }
 
@@ -105,7 +101,7 @@ public class EstudioController {
             @ApiResponse(responseCode = "200", description = "Busca realizada com sucesso")
     })
     public ResponseEntity<PagedModel<EntityModel<Estudio>>> searchByName(@RequestParam String nome, @PageableDefault(size = 10) Pageable pageable){
-        Page<Estudio> page = repository.findByNomeEstudioContainingIgnoreCase(nome, pageable);
+        Page<Estudio> page = service.searchByName(nome, pageable);
         return ResponseEntity.ok(pagedResourcesAssembler.toModel(page, this::toHateoas));
     }
 
