@@ -1,0 +1,95 @@
+package com.gamereview.gamereview_api.controller;
+
+import com.gamereview.gamereview_api.model.ListasDeJogos;
+import com.gamereview.gamereview_api.repository.ListasDeJogosRepository;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.data.web.PagedResourcesAssembler;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.PagedModel;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
+
+@RestController
+@RequestMapping("/listas")
+@Tag(name = "Listas de Jogos", description = "Endpoints para gerenciamento de listas personalizadas de jogos dos usuários")
+public class ListasDeJogosController {
+
+    @Autowired
+    private ListasDeJogosRepository repository;
+
+    @Autowired
+    private PagedResourcesAssembler<ListasDeJogos> pagedResourcesAssembler;
+
+    @PostMapping
+    @Operation(summary = "Criar uma nova lista de jogos")
+    public ResponseEntity<EntityModel<ListasDeJogos>> create(@RequestBody @Valid ListasDeJogos lista) {
+        ListasDeJogos saved = repository.save(lista);
+        return ResponseEntity.status(HttpStatus.CREATED).body(toHateoas(saved));
+    }
+
+    @GetMapping
+    @Operation(summary = "Listar todas as listas de jogos de forma paginada")
+    public ResponseEntity<PagedModel<EntityModel<ListasDeJogos>>> findAll(@PageableDefault(size = 10) Pageable pageable) {
+        Page<ListasDeJogos> page = repository.findAll(pageable);
+        return ResponseEntity.ok(pagedResourcesAssembler.toModel(page, this::toHateoas));
+    }
+
+    @GetMapping("/{id}")
+    @Operation(summary = "Buscar uma lista de jogos pelo ID")
+    public ResponseEntity<EntityModel<ListasDeJogos>> findById(@PathVariable Integer id) {
+        return repository.findById(id)
+                .map(lista -> ResponseEntity.ok(toHateoas(lista)))
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @PutMapping("/{id}")
+    @Operation(summary = "Atualizar uma lista de jogos")
+    public ResponseEntity<EntityModel<ListasDeJogos>> update(@PathVariable Integer id, @RequestBody @Valid ListasDeJogos lista) {
+        if (!repository.existsById(id)) {
+            return ResponseEntity.notFound().build();
+        }
+        lista.setId(id);
+        ListasDeJogos update = repository.save(lista);
+        return ResponseEntity.ok(toHateoas(update));
+    }
+
+    @DeleteMapping("/{id}")
+    @Operation(summary = "Excluir uma lista de jogos pelo ID")
+    public ResponseEntity<Void> delete(@PathVariable Integer id) {
+        if (!repository.existsById(id)) {
+            return ResponseEntity.notFound().build();
+        }
+        repository.deleteById(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/search/publicas")
+    @Operation(summary = "Buscar apenas listas públicas (paginado)")
+    public ResponseEntity<PagedModel<EntityModel<ListasDeJogos>>> searchPublicas(@PageableDefault(size = 10) Pageable pageable) {
+        Page<ListasDeJogos> page = repository.findByIsPublicaTrue(pageable);
+        return ResponseEntity.ok(pagedResourcesAssembler.toModel(page, this::toHateoas));
+    }
+
+    @GetMapping("/search/usuario")
+    @Operation(summary = "Buscar listas pelo ID do Usuário (paginado)")
+    public ResponseEntity<PagedModel<EntityModel<ListasDeJogos>>> searchByUsuario(@RequestParam Integer usuarioId, @PageableDefault(size = 10) Pageable pageable) {
+        Page<ListasDeJogos> page = repository.findByUsuarioId(usuarioId, pageable);
+        return ResponseEntity.ok(pagedResourcesAssembler.toModel(page, this::toHateoas));
+    }
+
+    private EntityModel<ListasDeJogos> toHateoas(ListasDeJogos lista) {
+        return EntityModel.of(lista,
+                linkTo(methodOn(ListasDeJogosController.class).findById(lista.getId())).withSelfRel(),
+                linkTo(methodOn(ListasDeJogosController.class).findAll(Pageable.unpaged())).withRel("todas_listas"));
+    }
+}

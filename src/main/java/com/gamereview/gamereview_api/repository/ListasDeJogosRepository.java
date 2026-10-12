@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface ListaDeJogosRepository extends JpaRepository<ListasDeJogos, Integer> {
+public interface ListasDeJogosRepository extends JpaRepository<ListasDeJogos, Integer> {
 
     Page<ListasDeJogos> findByUsuarioId(Integer usuarioId, Pageable pageable);
     Page<ListasDeJogos> findByIsPublicaTrue(Pageable pageable);

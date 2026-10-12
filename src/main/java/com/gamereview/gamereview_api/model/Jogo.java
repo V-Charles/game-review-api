@@ -1,5 +1,6 @@
 package com.gamereview.gamereview_api.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.PastOrPresent;
@@ -37,5 +38,6 @@ public class Jogo {
     private Estudio estudio;
 
     @ManyToMany(mappedBy = "jogos")
+    @JsonIgnore
     private List<ListasDeJogos> listas;
 }
