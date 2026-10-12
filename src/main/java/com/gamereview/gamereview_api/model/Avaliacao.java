@@ -46,6 +46,7 @@ public class Avaliacao {
     @JoinColumn(name = "jogo_id", nullable = false)
     private Jogo jogo;
 
+    @PrePersist
     protected void onCreate(){
         this.dataReview = LocalDateTime.now();
     }
