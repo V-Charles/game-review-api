@@ -1,5 +1,6 @@
 package com.gamereview.gamereview_api.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
@@ -27,5 +28,6 @@ public class Estudio {
     private String paisFundacao;
 
     @OneToMany(mappedBy = "estudio", cascade = CascadeType.ALL)
+    @JsonIgnore
     private List<Jogo> jogos;
 }
