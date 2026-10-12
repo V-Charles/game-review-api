@@ -3,6 +3,8 @@ package com.gamereview.gamereview_api.controller;
 import com.gamereview.gamereview_api.model.ListasDeJogos;
 import com.gamereview.gamereview_api.repository.ListasDeJogosRepository;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +34,11 @@ public class ListasDeJogosController {
 
     @PostMapping
     @Operation(summary = "Criar uma nova lista de jogos")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "Lista criada com sucesso"),
+            @ApiResponse(responseCode = "400", description = "Erro de validação (campos vazios)"),
+            @ApiResponse(responseCode = "409", description = "Conflito de dados (ex: ID do usuário inexistente)")
+    })
     public ResponseEntity<EntityModel<ListasDeJogos>> create(@RequestBody @Valid ListasDeJogos lista) {
         ListasDeJogos saved = repository.save(lista);
         return ResponseEntity.status(HttpStatus.CREATED).body(toHateoas(saved));
@@ -39,6 +46,9 @@ public class ListasDeJogosController {
 
     @GetMapping
     @Operation(summary = "Listar todas as listas de jogos de forma paginada")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Relação de listas recuperada com sucesso")
+    })
     public ResponseEntity<PagedModel<EntityModel<ListasDeJogos>>> findAll(@PageableDefault(size = 10) Pageable pageable) {
         Page<ListasDeJogos> page = repository.findAll(pageable);
         return ResponseEntity.ok(pagedResourcesAssembler.toModel(page, this::toHateoas));
@@ -46,6 +56,11 @@ public class ListasDeJogosController {
 
     @GetMapping("/{id}")
     @Operation(summary = "Buscar uma lista de jogos pelo ID")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Lista encontrada com sucesso"),
+            @ApiResponse(responseCode = "400", description = "ID fornecido é inválido"),
+            @ApiResponse(responseCode = "404", description = "Lista não encontrada")
+    })
     public ResponseEntity<EntityModel<ListasDeJogos>> findById(@PathVariable Integer id) {
         return repository.findById(id)
                 .map(lista -> ResponseEntity.ok(toHateoas(lista)))
@@ -54,6 +69,12 @@ public class ListasDeJogosController {
 
     @PutMapping("/{id}")
     @Operation(summary = "Atualizar uma lista de jogos")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Lista atualizada com sucesso"),
+            @ApiResponse(responseCode = "400", description = "Erro de validação ou ID inválido"),
+            @ApiResponse(responseCode = "404", description = "Lista não encontrada"),
+            @ApiResponse(responseCode = "409", description = "Conflito de dados")
+    })
     public ResponseEntity<EntityModel<ListasDeJogos>> update(@PathVariable Integer id, @RequestBody @Valid ListasDeJogos lista) {
         if (!repository.existsById(id)) {
             return ResponseEntity.notFound().build();
@@ -65,6 +86,11 @@ public class ListasDeJogosController {
 
     @DeleteMapping("/{id}")
     @Operation(summary = "Excluir uma lista de jogos pelo ID")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "Lista excluída com sucesso"),
+            @ApiResponse(responseCode = "400", description = "ID fornecido é inválido"),
+            @ApiResponse(responseCode = "404", description = "Lista não encontrada")
+    })
     public ResponseEntity<Void> delete(@PathVariable Integer id) {
         if (!repository.existsById(id)) {
             return ResponseEntity.notFound().build();
@@ -75,6 +101,9 @@ public class ListasDeJogosController {
 
     @GetMapping("/search/publicas")
     @Operation(summary = "Buscar apenas listas públicas (paginado)")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Busca realizada com sucesso")
+    })
     public ResponseEntity<PagedModel<EntityModel<ListasDeJogos>>> searchPublicas(@PageableDefault(size = 10) Pageable pageable) {
         Page<ListasDeJogos> page = repository.findByIsPublicaTrue(pageable);
         return ResponseEntity.ok(pagedResourcesAssembler.toModel(page, this::toHateoas));
@@ -82,6 +111,10 @@ public class ListasDeJogosController {
 
     @GetMapping("/search/usuario")
     @Operation(summary = "Buscar listas pelo ID do Usuário (paginado)")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Busca realizada com sucesso"),
+            @ApiResponse(responseCode = "400", description = "ID do usuário fornecido é inválido")
+    })
     public ResponseEntity<PagedModel<EntityModel<ListasDeJogos>>> searchByUsuario(@RequestParam Integer usuarioId, @PageableDefault(size = 10) Pageable pageable) {
         Page<ListasDeJogos> page = repository.findByUsuarioId(usuarioId, pageable);
         return ResponseEntity.ok(pagedResourcesAssembler.toModel(page, this::toHateoas));

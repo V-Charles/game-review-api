@@ -3,6 +3,8 @@ package com.gamereview.gamereview_api.controller;
 import com.gamereview.gamereview_api.model.Avaliacao;
 import com.gamereview.gamereview_api.repository.AvaliacaoRepository;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +34,11 @@ public class AvaliacaoController {
 
     @PostMapping
     @Operation(summary = "Criar uma nova avaliação para um jogo")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "Avaliação criada com sucesso"),
+            @ApiResponse(responseCode = "400", description = "Erro de validação (campos vazios ou valores inválidos)"),
+            @ApiResponse(responseCode = "409", description = "Conflito de dados (ex: IDs de usuário ou jogo inexistentes)")
+    })
     public ResponseEntity<EntityModel<Avaliacao>> create(@RequestBody @Valid Avaliacao avaliacao){
         Avaliacao saved = repository.save(avaliacao);
         return ResponseEntity.status(HttpStatus.CREATED).body(toHateoas(saved));
@@ -39,6 +46,9 @@ public class AvaliacaoController {
 
     @GetMapping
     @Operation(summary = "Listar todas as avaliações de forma paginada")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Lista de avaliações recuperada com sucesso")
+    })
     public ResponseEntity<PagedModel<EntityModel<Avaliacao>>> findAll(@PageableDefault(size = 10) Pageable pageable){
         Page<Avaliacao> page = repository.findAll(pageable);
         return ResponseEntity.ok(pagedResourcesAssembler.toModel(page, this::toHateoas));
@@ -46,6 +56,11 @@ public class AvaliacaoController {
 
     @GetMapping("/{id}")
     @Operation(summary = "Buscar uma avaliação pelo ID")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Avaliação encontrada com sucesso"),
+            @ApiResponse(responseCode = "400", description = "ID fornecido é inválido (erro de tipo)"),
+            @ApiResponse(responseCode = "404", description = "Avaliação não encontrada")
+    })
     public ResponseEntity<EntityModel<Avaliacao>> findById(@PathVariable Integer id){
         return repository.findById(id)
                 .map(avaliacao -> ResponseEntity.ok(toHateoas(avaliacao)))
@@ -54,6 +69,12 @@ public class AvaliacaoController {
 
     @PutMapping("/{id}")
     @Operation(summary = "Atualizar uma avaliação")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Avaliação atualizada com sucesso"),
+            @ApiResponse(responseCode = "400", description = "Erro de validação ou ID inválido"),
+            @ApiResponse(responseCode = "404", description = "Avaliação não encontrada"),
+            @ApiResponse(responseCode = "409", description = "Conflito de dados")
+    })
     public ResponseEntity<EntityModel<Avaliacao>> update(@PathVariable Integer id, @RequestBody @Valid Avaliacao avaliacao){
         if(!repository.existsById(id)){
             return ResponseEntity.notFound().build();
@@ -65,6 +86,11 @@ public class AvaliacaoController {
 
     @DeleteMapping("/{id}")
     @Operation(summary = "Excluir uma avaliação")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "Avaliação excluída com sucesso"),
+            @ApiResponse(responseCode = "400", description = "ID fornecido é inválido"),
+            @ApiResponse(responseCode = "404", description = "Avaliação não encontrada")
+    })
     public ResponseEntity<Void> delete(@PathVariable Integer id){
         if(!repository.existsById(id)){
             return ResponseEntity.notFound().build();
@@ -75,6 +101,10 @@ public class AvaliacaoController {
 
     @GetMapping("/search")
     @Operation(summary = "Buscar avaliações por ID do jogo (paginado)")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Busca realizada com sucesso"),
+            @ApiResponse(responseCode = "400", description = "Parâmetro ID do jogo fornecido é inválido")
+    })
     public ResponseEntity<PagedModel<EntityModel<Avaliacao>>> searchByJogo(
             @RequestParam Integer jogoId,
             @PageableDefault(size = 10) Pageable pageable){

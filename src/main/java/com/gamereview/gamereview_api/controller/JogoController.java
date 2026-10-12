@@ -3,6 +3,8 @@ package com.gamereview.gamereview_api.controller;
 import com.gamereview.gamereview_api.model.Jogo;
 import com.gamereview.gamereview_api.repository.JogoRepository;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +34,11 @@ public class JogoController {
 
     @PostMapping
     @Operation(summary = "Cadastrar um novo jogo")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "Jogo criado com sucesso"),
+            @ApiResponse(responseCode = "400", description = "Erro de validação (campos vazios ou inválidos)"),
+            @ApiResponse(responseCode = "409", description = "Conflito de dados (ex: violação de integridade ou chave estrangeira inexistente)")
+    })
     public ResponseEntity<EntityModel<Jogo>> create(@RequestBody @Valid Jogo jogo){
         Jogo saved = repository.save(jogo);
         return ResponseEntity.status(HttpStatus.CREATED).body(toHateoas(saved));
@@ -39,6 +46,9 @@ public class JogoController {
 
     @GetMapping
     @Operation(summary = "Listar todos os jogos de forma paginada")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Lista de jogos recuperada com sucesso")
+    })
     public ResponseEntity<PagedModel<EntityModel<Jogo>>> findAll(@PageableDefault(size = 10) Pageable pageable){
         Page<Jogo> page = repository.findAll(pageable);
         return ResponseEntity.ok(pagedResourcesAssembler.toModel(page, this::toHateoas));
@@ -46,6 +56,11 @@ public class JogoController {
 
     @GetMapping("/{id}")
     @Operation(summary = "Buscar um jogo pelo ID")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Jogo encontrado com sucesso"),
+            @ApiResponse(responseCode = "400", description = "ID fornecido é inválido (erro de tipo)"),
+            @ApiResponse(responseCode = "404", description = "Jogo não encontrado")
+    })
     public ResponseEntity<EntityModel<Jogo>> findById(@PathVariable Integer id){
         return repository.findById(id)
                 .map(jogo -> ResponseEntity.ok(toHateoas(jogo)))
@@ -54,6 +69,12 @@ public class JogoController {
 
     @PutMapping("/{id}")
     @Operation(summary = "Atualizar os dados de um jogo")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Jogo atualizado com sucesso"),
+            @ApiResponse(responseCode = "400", description = "Erro de validação ou ID inválido"),
+            @ApiResponse(responseCode = "404", description = "Jogo não encontrado"),
+            @ApiResponse(responseCode = "409", description = "Conflito de dados")
+    })
     public ResponseEntity<EntityModel<Jogo>> update(@PathVariable Integer id, @RequestBody @Valid Jogo jogo){
         if(!repository.existsById(id)){
             return ResponseEntity.notFound().build();
@@ -65,6 +86,11 @@ public class JogoController {
 
     @DeleteMapping("/{id}")
     @Operation(summary = "Excluir um jogo pelo ID")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "Jogo excluído com sucesso"),
+            @ApiResponse(responseCode = "400", description = "ID fornecido é inválido"),
+            @ApiResponse(responseCode = "404", description = "Jogo não encontrado")
+    })
     public ResponseEntity<Void> delete(@PathVariable Integer id){
         if(!repository.existsById(id)){
             return ResponseEntity.notFound().build();
@@ -75,6 +101,9 @@ public class JogoController {
 
     @GetMapping("/search")
     @Operation(summary = "Buscar jogos pelo título (paginado)")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Busca realizada com sucesso")
+    })
     public ResponseEntity<PagedModel<EntityModel<Jogo>>> searchByTitulo(@RequestParam String titulo, @PageableDefault(size = 10) Pageable pageable){
         Page<Jogo> page = repository.findByTituloContainingIgnoreCase(titulo, pageable);
         return ResponseEntity.ok(pagedResourcesAssembler.toModel(page, this::toHateoas));
