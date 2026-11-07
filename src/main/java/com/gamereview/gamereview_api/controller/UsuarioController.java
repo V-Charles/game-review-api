@@ -18,6 +18,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
@@ -58,17 +60,36 @@ public class UsuarioController {
         return ResponseEntity.ok(pagedResourcesAssembler.toModel(page, this::toHateoas));
     }
 
-    @GetMapping("/{id}")
-    @Operation(summary = "Buscar um usuário pelo ID")
+    @GetMapping(value = "/{id}", headers = "X-API-Version=1")
+    @Operation(summary = "Buscar um usuário pelo ID (Versão 1)")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Usuário encontrado com sucesso"),
             @ApiResponse(responseCode = "400", description = "ID fornecido é inválido (erro de tipo)"),
             @ApiResponse(responseCode = "404", description = "Usuário não encontrado")
     })
 
-    public ResponseEntity<EntityModel<Usuario>> findById(@PathVariable Integer id){
+    public ResponseEntity<EntityModel<Usuario>> findByIdV1(@PathVariable Integer id){
         return service.findById(id)
                 .map(usuario -> ResponseEntity.ok(toHateoas(usuario)))
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping(value = "/{id}", headers = "X-API-Version=2")
+    @Operation(summary = "Buscar um usuário pelo ID (Versão 2)")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Usuário encontrado com sucesso com nova estrutura"),
+            @ApiResponse(responseCode = "400", description = "ID fornecido é inválido (erro de tipo)"),
+            @ApiResponse(responseCode = "404", description = "Usuário não encontrado")
+    })
+
+    public ResponseEntity<Object> findByIdV2(@PathVariable Integer id){
+        return service.findById(id)
+                .map(usuario -> {
+                    Map<String, Object> responseV2 = new HashMap<>();
+                    responseV2.put("apiVersion", "v2");
+                    responseV2.put("data", toHateoas(usuario));
+                    return ResponseEntity.ok((Object) responseV2);
+                })
                 .orElse(ResponseEntity.notFound().build());
     }
 
@@ -117,7 +138,7 @@ public class UsuarioController {
 
     private EntityModel<Usuario> toHateoas(Usuario usuario){
         return EntityModel.of(usuario,
-                linkTo(methodOn(UsuarioController.class).findById(usuario.getId())).withSelfRel(),
+                linkTo(methodOn(UsuarioController.class).findByIdV1(usuario.getId())).withSelfRel(),
                 linkTo(methodOn(UsuarioController.class).findAll(Pageable.unpaged())).withRel("todos_usuarios"));
     }
 }
