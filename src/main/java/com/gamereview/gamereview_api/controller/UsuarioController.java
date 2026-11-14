@@ -3,6 +3,9 @@ package com.gamereview.gamereview_api.controller;
 import com.gamereview.gamereview_api.model.Usuario;
 import com.gamereview.gamereview_api.service.UsuarioService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -61,11 +64,23 @@ public class UsuarioController {
     }
 
     @GetMapping(value = "/{id}", headers = "X-API-Version=1")
-    @Operation(summary = "Buscar um usuário pelo ID (Versão 1)")
+    @Operation(
+            summary = "Buscar um usuário pelo ID (Versão 1)",
+            parameters = {
+                    @Parameter(
+                            in = ParameterIn.HEADER,
+                            name = "X-API-Version",
+                            description = "Versão do contrato da API",
+                            required = true,
+                            schema = @Schema(type = "string", allowableValues = {"1", "2"}, defaultValue = "1")
+                    )
+            }
+    )
+
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Usuário encontrado com sucesso"),
             @ApiResponse(responseCode = "400", description = "ID fornecido é inválido (erro de tipo)"),
-            @ApiResponse(responseCode = "404", description = "Usuário não encontrado")
+            @ApiResponse(responseCode = "404", description = "Usuário ou versão não encontrada")
     })
 
     public ResponseEntity<EntityModel<Usuario>> findByIdV1(@PathVariable Integer id){
@@ -75,11 +90,23 @@ public class UsuarioController {
     }
 
     @GetMapping(value = "/{id}", headers = "X-API-Version=2")
-    @Operation(summary = "Buscar um usuário pelo ID (Versão 2)")
+    @Operation(
+            summary = "Buscar um usuário pelo ID (Versão 2)",
+            parameters = {
+                    @Parameter(
+                            in = ParameterIn.HEADER,
+                            name = "X-API-Version",
+                            description = "Versão do contrato da API",
+                            required = true,
+                            schema = @Schema(type = "string", allowableValues = {"1", "2"}, defaultValue = "2")
+                    )
+            }
+    )
+
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Usuário encontrado com sucesso com nova estrutura"),
             @ApiResponse(responseCode = "400", description = "ID fornecido é inválido (erro de tipo)"),
-            @ApiResponse(responseCode = "404", description = "Usuário não encontrado")
+            @ApiResponse(responseCode = "404", description = "Usuário ou versão não encontrada")
     })
 
     public ResponseEntity<Object> findByIdV2(@PathVariable Integer id){
@@ -129,7 +156,6 @@ public class UsuarioController {
             @ApiResponse(responseCode = "200", description = "Usuário encontrado com sucesso"),
             @ApiResponse(responseCode = "404", description = "Nenhum usuário encontrado com o e-mail fornecido")
     })
-
     public ResponseEntity<EntityModel<Usuario>> searchByEmail(@RequestParam String email){
         Optional<Usuario> usuario = service.searchByEmail(email);
         return usuario.map(value -> ResponseEntity.ok(toHateoas(value)))

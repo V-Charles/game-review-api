@@ -21,6 +21,14 @@ public class RateLimitFilter extends OncePerRequestFilter {
     private RateLimitingService rateLimitingService;
 
     @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        String path = request.getRequestURI();
+        return path.startsWith("/swagger-ui")
+                || path.startsWith("/v3/api-docs")
+                || path.equals("/swagger-ui.html");
+    }
+
+    @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String ip = request.getRemoteAddr();
         Bucket bucket = rateLimitingService.resolveBucket(ip);
