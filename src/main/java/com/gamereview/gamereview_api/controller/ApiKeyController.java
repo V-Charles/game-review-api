@@ -2,6 +2,7 @@ package com.gamereview.gamereview_api.controller;
 
 import com.gamereview.gamereview_api.service.ApiKeyService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -25,9 +26,13 @@ public class ApiKeyController {
     @Operation(summary = "Gerar uma nova chave de API para o usuário")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Chave gerada com sucesso"),
-            @ApiResponse(responseCode = "404", description = "Usuário não encontrado")
+            @ApiResponse(responseCode = "400", description = "ID inválido ou cabeçalho X-Idempotency-Key ausente"),
+            @ApiResponse(responseCode = "404", description = "Usuário não encontrado"),
+            @ApiResponse(responseCode = "409", description = "Conflito de idempotência (chave já processada)")
     })
-    public ResponseEntity<Object> gerarChave(@PathVariable Integer usuarioId) {
+    public ResponseEntity<Object> gerarChave(
+            @Parameter(description = "ID do usuário proprietário da chave", example = "1")
+            @PathVariable Integer usuarioId) {
         return service.gerarChave(usuarioId).map(apiKey -> {
             Map<String, String> response = new HashMap<>();
             response.put("chave", apiKey.getChave());

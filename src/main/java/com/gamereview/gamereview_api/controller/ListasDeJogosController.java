@@ -3,6 +3,7 @@ package com.gamereview.gamereview_api.controller;
 import com.gamereview.gamereview_api.model.ListasDeJogos;
 import com.gamereview.gamereview_api.service.ListasDeJogosService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -39,7 +40,6 @@ public class ListasDeJogosController {
             @ApiResponse(responseCode = "400", description = "Erro de validação (campos vazios)"),
             @ApiResponse(responseCode = "409", description = "Conflito de dados (ex: ID do usuário inexistente)")
     })
-
     public ResponseEntity<EntityModel<ListasDeJogos>> create(@RequestBody @Valid ListasDeJogos lista) {
         ListasDeJogos saved = service.create(lista);
         return ResponseEntity.status(HttpStatus.CREATED).body(toHateoas(saved));
@@ -50,7 +50,6 @@ public class ListasDeJogosController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Relação de listas recuperada com sucesso")
     })
-
     public ResponseEntity<PagedModel<EntityModel<ListasDeJogos>>> findAll(@PageableDefault(size = 10) Pageable pageable) {
         Page<ListasDeJogos> page = service.findAll(pageable);
         return ResponseEntity.ok(pagedResourcesAssembler.toModel(page, this::toHateoas));
@@ -63,8 +62,9 @@ public class ListasDeJogosController {
             @ApiResponse(responseCode = "400", description = "ID fornecido é inválido"),
             @ApiResponse(responseCode = "404", description = "Lista não encontrada")
     })
-
-    public ResponseEntity<EntityModel<ListasDeJogos>> findById(@PathVariable Integer id) {
+    public ResponseEntity<EntityModel<ListasDeJogos>> findById(
+            @Parameter(description = "ID da lista de jogos", example = "1")
+            @PathVariable Integer id) {
         return service.findById(id)
                 .map(lista -> ResponseEntity.ok(toHateoas(lista)))
                 .orElse(ResponseEntity.notFound().build());
@@ -78,8 +78,10 @@ public class ListasDeJogosController {
             @ApiResponse(responseCode = "404", description = "Lista não encontrada"),
             @ApiResponse(responseCode = "409", description = "Conflito de dados")
     })
-
-    public ResponseEntity<EntityModel<ListasDeJogos>> update(@PathVariable Integer id, @RequestBody @Valid ListasDeJogos lista) {
+    public ResponseEntity<EntityModel<ListasDeJogos>> update(
+            @Parameter(description = "ID da lista de jogos", example = "1")
+            @PathVariable Integer id,
+            @RequestBody @Valid ListasDeJogos lista) {
         return service.update(id, lista)
                 .map(update -> ResponseEntity.ok(toHateoas(update)))
                 .orElse(ResponseEntity.notFound().build());
@@ -92,8 +94,9 @@ public class ListasDeJogosController {
             @ApiResponse(responseCode = "400", description = "ID fornecido é inválido"),
             @ApiResponse(responseCode = "404", description = "Lista não encontrada")
     })
-
-    public ResponseEntity<Void> delete(@PathVariable Integer id) {
+    public ResponseEntity<Void> delete(
+            @Parameter(description = "ID da lista de jogos", example = "1")
+            @PathVariable Integer id) {
         if (!service.delete(id)) {
             return ResponseEntity.notFound().build();
         }
@@ -105,7 +108,6 @@ public class ListasDeJogosController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Busca realizada com sucesso")
     })
-
     public ResponseEntity<PagedModel<EntityModel<ListasDeJogos>>> searchPublicas(@PageableDefault(size = 10) Pageable pageable) {
         Page<ListasDeJogos> page = service.searchPublicas(pageable);
         return ResponseEntity.ok(pagedResourcesAssembler.toModel(page, this::toHateoas));
@@ -117,8 +119,10 @@ public class ListasDeJogosController {
             @ApiResponse(responseCode = "200", description = "Busca realizada com sucesso"),
             @ApiResponse(responseCode = "400", description = "ID do usuário fornecido é inválido")
     })
-
-    public ResponseEntity<PagedModel<EntityModel<ListasDeJogos>>> searchByUsuario(@RequestParam Integer usuarioId, @PageableDefault(size = 10) Pageable pageable) {
+    public ResponseEntity<PagedModel<EntityModel<ListasDeJogos>>> searchByUsuario(
+            @Parameter(description = "ID do usuário criador das listas", example = "1")
+            @RequestParam Integer usuarioId,
+            @PageableDefault(size = 10) Pageable pageable) {
         Page<ListasDeJogos> page = service.searchByUsuario(usuarioId, pageable);
         return ResponseEntity.ok(pagedResourcesAssembler.toModel(page, this::toHateoas));
     }
