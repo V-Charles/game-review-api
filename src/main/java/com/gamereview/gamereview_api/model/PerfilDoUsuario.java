@@ -32,5 +32,6 @@ public class PerfilDoUsuario {
 
     @OneToOne
     @JoinColumn(name = "usuario_id", referencedColumnName = "id", nullable = false)
+    @Schema(description = "Usuário proprietário do perfil (informe apenas o ID)", example = "{\"id\": 1}")
     private Usuario usuario;
 }
