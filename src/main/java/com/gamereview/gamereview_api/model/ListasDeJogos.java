@@ -34,6 +34,7 @@ public class ListasDeJogos {
 
     @ManyToOne
     @JoinColumn(name = "usuario_id", nullable = false)
+    @Schema(description = "Usuário criador da lista (informe apenas o ID)", example = "{\"id\": 1}")
     private Usuario usuario;
 
     @ManyToMany
@@ -42,5 +43,6 @@ public class ListasDeJogos {
             joinColumns = @JoinColumn(name = "lista_id"),
             inverseJoinColumns = @JoinColumn(name = "jogo_id")
     )
+    @Schema(description = "Jogos adicionados à lista (informe apenas os IDs)", example = "[{\"id\": 1}]")
     private List<Jogo> jogos;
 }

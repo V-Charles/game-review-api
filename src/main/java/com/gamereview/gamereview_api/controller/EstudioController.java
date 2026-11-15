@@ -3,6 +3,7 @@ package com.gamereview.gamereview_api.controller;
 import com.gamereview.gamereview_api.model.Estudio;
 import com.gamereview.gamereview_api.service.EstudioService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -61,7 +62,9 @@ public class EstudioController {
             @ApiResponse(responseCode = "400", description = "ID fornecido é inválido (erro de tipo, ex: texto em vez de número)"),
             @ApiResponse(responseCode = "404", description = "Estúdio não encontrado")
     })
-    public ResponseEntity<EntityModel<Estudio>> findById(@PathVariable Integer id){
+    public ResponseEntity<EntityModel<Estudio>> findById(
+            @Parameter(description = "ID do estúdio", example = "1")
+            @PathVariable Integer id){
         return service.findById(id)
                 .map(estudio -> ResponseEntity.ok(toHateoas(estudio)))
                 .orElse(ResponseEntity.notFound().build());
@@ -75,7 +78,10 @@ public class EstudioController {
             @ApiResponse(responseCode = "404", description = "Estúdio não encontrado"),
             @ApiResponse(responseCode = "409", description = "Conflito de dados")
     })
-    public ResponseEntity<EntityModel<Estudio>> update(@PathVariable Integer id, @RequestBody @Valid Estudio estudio){
+    public ResponseEntity<EntityModel<Estudio>> update(
+            @Parameter(description = "ID do estúdio", example = "1")
+            @PathVariable Integer id,
+            @RequestBody @Valid Estudio estudio){
         return service.update(id, estudio)
                 .map(update -> ResponseEntity.ok(toHateoas(update)))
                 .orElse(ResponseEntity.notFound().build());
@@ -88,7 +94,9 @@ public class EstudioController {
             @ApiResponse(responseCode = "400", description = "ID fornecido é inválido"),
             @ApiResponse(responseCode = "404", description = "Estúdio não encontrado")
     })
-    public ResponseEntity<Void> delete(@PathVariable Integer id){
+    public ResponseEntity<Void> delete(
+            @Parameter(description = "ID do estúdio", example = "1")
+            @PathVariable Integer id){
         if(!service.delete(id)){
             return ResponseEntity.notFound().build();
         }
@@ -100,7 +108,10 @@ public class EstudioController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Busca realizada com sucesso")
     })
-    public ResponseEntity<PagedModel<EntityModel<Estudio>>> searchByName(@RequestParam String nome, @PageableDefault(size = 10) Pageable pageable){
+    public ResponseEntity<PagedModel<EntityModel<Estudio>>> searchByName(
+            @Parameter(description = "Nome ou parte do nome do estúdio", example = "Ubisoft")
+            @RequestParam String nome,
+            @PageableDefault(size = 10) Pageable pageable){
         Page<Estudio> page = service.searchByName(nome, pageable);
         return ResponseEntity.ok(pagedResourcesAssembler.toModel(page, this::toHateoas));
     }

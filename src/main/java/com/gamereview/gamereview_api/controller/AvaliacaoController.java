@@ -3,6 +3,7 @@ package com.gamereview.gamereview_api.controller;
 import com.gamereview.gamereview_api.model.Avaliacao;
 import com.gamereview.gamereview_api.service.AvaliacaoService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -39,7 +40,6 @@ public class AvaliacaoController {
             @ApiResponse(responseCode = "400", description = "Erro de validação (campos vazios ou valores inválidos)"),
             @ApiResponse(responseCode = "409", description = "Conflito de dados (ex: IDs de usuário ou jogo inexistentes)")
     })
-
     public ResponseEntity<EntityModel<Avaliacao>> create(@RequestBody @Valid Avaliacao avaliacao){
         Avaliacao saved = service.create(avaliacao);
         return ResponseEntity.status(HttpStatus.CREATED).body(toHateoas(saved));
@@ -50,7 +50,6 @@ public class AvaliacaoController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Lista de avaliações recuperada com sucesso")
     })
-
     public ResponseEntity<PagedModel<EntityModel<Avaliacao>>> findAll(@PageableDefault(size = 10) Pageable pageable){
         Page<Avaliacao> page = service.findAll(pageable);
         return ResponseEntity.ok(pagedResourcesAssembler.toModel(page, this::toHateoas));
@@ -63,8 +62,9 @@ public class AvaliacaoController {
             @ApiResponse(responseCode = "400", description = "ID fornecido é inválido (erro de tipo)"),
             @ApiResponse(responseCode = "404", description = "Avaliação não encontrada")
     })
-
-    public ResponseEntity<EntityModel<Avaliacao>> findById(@PathVariable Integer id){
+    public ResponseEntity<EntityModel<Avaliacao>> findById(
+            @Parameter(description = "ID da avaliação", example = "1")
+            @PathVariable Integer id){
         return service.findById(id)
                 .map(avaliacao -> ResponseEntity.ok(toHateoas(avaliacao)))
                 .orElse(ResponseEntity.notFound().build());
@@ -78,8 +78,10 @@ public class AvaliacaoController {
             @ApiResponse(responseCode = "404", description = "Avaliação não encontrada"),
             @ApiResponse(responseCode = "409", description = "Conflito de dados")
     })
-
-    public ResponseEntity<EntityModel<Avaliacao>> update(@PathVariable Integer id, @RequestBody @Valid Avaliacao avaliacao){
+    public ResponseEntity<EntityModel<Avaliacao>> update(
+            @Parameter(description = "ID da avaliação", example = "1")
+            @PathVariable Integer id,
+            @RequestBody @Valid Avaliacao avaliacao){
         return service.update(id, avaliacao)
                 .map(update -> ResponseEntity.ok(toHateoas(update)))
                 .orElse(ResponseEntity.notFound().build());
@@ -92,8 +94,9 @@ public class AvaliacaoController {
             @ApiResponse(responseCode = "400", description = "ID fornecido é inválido"),
             @ApiResponse(responseCode = "404", description = "Avaliação não encontrada")
     })
-
-    public ResponseEntity<Void> delete(@PathVariable Integer id){
+    public ResponseEntity<Void> delete(
+            @Parameter(description = "ID da avaliação", example = "1")
+            @PathVariable Integer id){
         if(!service.delete(id)){
             return ResponseEntity.notFound().build();
         }
@@ -106,8 +109,8 @@ public class AvaliacaoController {
             @ApiResponse(responseCode = "200", description = "Busca realizada com sucesso"),
             @ApiResponse(responseCode = "400", description = "Parâmetro ID do jogo fornecido é inválido")
     })
-
     public ResponseEntity<PagedModel<EntityModel<Avaliacao>>> searchByJogo(
+            @Parameter(description = "ID do jogo avaliado", example = "1")
             @RequestParam Integer jogoId,
             @PageableDefault(size = 10) Pageable pageable){
         Page<Avaliacao> page = service.searchByJogo(jogoId, pageable);

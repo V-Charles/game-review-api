@@ -46,10 +46,12 @@ public class Avaliacao {
 
     @ManyToOne
     @JoinColumn(name = "usuario_id", nullable = false)
+    @Schema(description = "Usuário autor da avaliação (informe apenas o ID)", example = "{\"id\": 1}")
     private Usuario usuario;
 
     @ManyToOne
     @JoinColumn(name = "jogo_id", nullable = false)
+    @Schema(description = "Jogo avaliado (informe apenas o ID)", example = "{\"id\": 1}")
     private Jogo jogo;
 
     @PrePersist

@@ -41,6 +41,7 @@ public class Jogo {
 
     @ManyToOne
     @JoinColumn(name = "estudio_id", nullable = false)
+    @Schema(description = "Estúdio desenvolvedor do jogo (informe apenas o ID)", example = "{\"id\": 1}")
     private Estudio estudio;
 
     @ManyToMany(mappedBy = "jogos")
