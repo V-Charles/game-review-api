@@ -1,5 +1,6 @@
 package com.gamereview.gamereview_api.config;
 
+import com.gamereview.gamereview_api.exception.FilterErrorResponseWriter;
 import com.gamereview.gamereview_api.service.RateLimitingService;
 import io.github.bucket4j.Bucket;
 import io.github.bucket4j.ConsumptionProbe;
@@ -19,6 +20,9 @@ public class RateLimitFilter extends OncePerRequestFilter {
 
     @Autowired
     private RateLimitingService rateLimitingService;
+
+    @Autowired
+    private FilterErrorResponseWriter errorResponseWriter;
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
@@ -40,10 +44,13 @@ public class RateLimitFilter extends OncePerRequestFilter {
         } else {
             long waitForRefill = probe.getNanosToWaitForRefill() / 1_000_000_000;
             response.setHeader("Retry-After", String.valueOf(waitForRefill));
-            response.setStatus(HttpStatus.TOO_MANY_REQUESTS.value());
-            response.setContentType("application/json");
-            response.setCharacterEncoding("UTF-8");
-            response.getWriter().write("{\"erro\": \"Muitas requisicoes. Tente novamente mais tarde.\"}");
+            errorResponseWriter.writeError(
+                    request,
+                    response,
+                    HttpStatus.TOO_MANY_REQUESTS,
+                    "Limite de Requisições Excedido",
+                    "Você excedeu o limite de requisições permitidas. Aguarde antes de tentar novamente."
+            );
         }
     }
 }
