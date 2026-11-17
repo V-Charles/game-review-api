@@ -11,17 +11,22 @@ import java.util.concurrent.ConcurrentHashMap;
 @Service
 public class RateLimitingService {
 
-    private final Map<String, Bucket> cache = new ConcurrentHashMap<>();
+    private static final int MAX_REQUESTS_PER_MINUTE = 5;
 
-    public Bucket resolveBucket(String ip) {
-        return cache.computeIfAbsent(ip, this::newBucket);
+    private final Map<String, Bucket> buckets = new ConcurrentHashMap<>();
+
+    public Bucket resolveBucket(String clientKey) {
+        return buckets.computeIfAbsent(clientKey, this::createNewBucket);
     }
 
-    private Bucket newBucket(String ip) {
+    private Bucket createNewBucket(String clientKey) {
         Bandwidth limit = Bandwidth.builder()
-                .capacity(5)
-                .refillGreedy(5, Duration.ofMinutes(1))
+                .capacity(MAX_REQUESTS_PER_MINUTE)
+                .refillIntervally(MAX_REQUESTS_PER_MINUTE, Duration.ofMinutes(1))
                 .build();
-        return Bucket.builder().addLimit(limit).build();
+
+        return Bucket.builder()
+                .addLimit(limit)
+                .build();
     }
 }
